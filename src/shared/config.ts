@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer'
-import { IsNumber, IsString, validateSync } from 'class-validator'
+import { IsString, validateSync } from 'class-validator'
 import { config } from 'dotenv'
 import fs from 'fs'
 import path from 'path'
