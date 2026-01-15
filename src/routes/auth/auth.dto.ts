@@ -1,3 +1,4 @@
+import { Exclude } from "class-transformer"
 import { IsString } from "class-validator"
 
 export class LoginBodyDTO {
@@ -16,7 +17,12 @@ export class RegisterResDTO {
     id: number
     email: string
     name: string
-    password: string
+    @Exclude() password: string
     createdAt: Date
     updatedAt: Date
+
+    constructor(partial: Partial<RegisterResDTO>) {
+    Object.assign(this, partial);
 }
+}
+
