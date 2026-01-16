@@ -3,6 +3,7 @@ import { HasingService } from '../../shared/services/hasing.service';
 import { PrismaService } from '../../shared/services/prisma.service';
 import { LoginBodyDTO, RegisterBodyDTO } from './auth.dto';
 import { TokenService } from 'src/shared/services/token.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -80,5 +81,37 @@ export class AuthService {
            accessToken,
            refreshToken
        }
+    }
+
+    async refreshToken(refreshToken: string){
+        try {
+            const decodedRefreshToken = await this.tokenService.verifyRefreshToken(refreshToken)
+
+            if (!decodedRefreshToken) {
+                throw new UnauthorizedException('Invalid refresh token')
+            }   
+
+            await this.prismaService.refreshToken.findUniqueOrThrow({
+                where: {
+                    token: refreshToken
+                }
+            })
+
+            await this.prismaService.refreshToken.delete({
+                where: {
+                    token: refreshToken
+                }
+            })
+            const tokens = await this.generateTokens({userId: decodedRefreshToken.userId})
+
+        return tokens
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2025') {
+                    throw new UnauthorizedException('Invalid refresh token')
+                }
+            }
+            throw error
+        }
     }
 }

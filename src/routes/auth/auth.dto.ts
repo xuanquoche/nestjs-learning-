@@ -35,3 +35,10 @@ export class RegisterResDTO {
 }
 }
 
+
+export class RefreshTokenBodyDTO {
+    @IsString()
+    refreshToken: string
+}
+
+export class RefreshTokenResDTO extends LoginResDTO {}
