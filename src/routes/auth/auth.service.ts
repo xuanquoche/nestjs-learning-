@@ -3,7 +3,7 @@ import { HasingService } from '../../shared/services/hasing.service';
 import { PrismaService } from '../../shared/services/prisma.service';
 import { LoginBodyDTO, RegisterBodyDTO } from './auth.dto';
 import { TokenService } from 'src/shared/services/token.service';
-import { Prisma } from '@prisma/client';
+import { isUniqueConsstraintError } from 'src/shared/helpers';
 
 @Injectable()
 export class AuthService {
@@ -106,10 +106,13 @@ export class AuthService {
 
         return tokens
         } catch (error) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                if (error.code === 'P2025') {
-                    throw new UnauthorizedException('Invalid refresh token')
-                }
+            if(isUniqueConsstraintError(error)){
+                throw new UnprocessableEntityException([
+                    {
+                        field: 'email',
+                        error: 'Email is already in use'
+                    }
+                ])
             }
             throw error
         }
