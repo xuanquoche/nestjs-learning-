@@ -14,8 +14,8 @@ export class LoginResDTO {
     refreshToken: string
 
     constructor(partial: Partial<LoginResDTO>) {
-    Object.assign(this, partial);
-}
+        Object.assign(this, partial);
+    }
 }
 
 export class RegisterBodyDTO extends LoginBodyDTO {
@@ -36,8 +36,8 @@ export class RegisterResDTO {
     updatedAt: Date
 
     constructor(partial: Partial<RegisterResDTO>) {
-    Object.assign(this, partial);
-}
+        Object.assign(this, partial);
+    }
 }
 
 
@@ -46,4 +46,15 @@ export class RefreshTokenBodyDTO {
     refreshToken: string
 }
 
-export class RefreshTokenResDTO extends LoginResDTO {}
+export class RefreshTokenResDTO extends LoginResDTO { }
+
+export class LogoutBodyDTO extends RefreshTokenBodyDTO { }
+
+export class LogoutResDTO {
+    message: string
+
+    constructor(partial: Partial<LogoutResDTO>) {
+        Object.assign(this, partial);
+    }
+}
+

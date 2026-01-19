@@ -8,10 +8,10 @@ import { isUniqueConsstraintError } from 'src/shared/helpers';
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly hashService: HasingService, 
+        private readonly hashService: HasingService,
         private readonly prismaService: PrismaService,
-        private readonly tokenService: TokenService){}
-    async register(body: RegisterBodyDTO){
+        private readonly tokenService: TokenService) { }
+    async register(body: RegisterBodyDTO) {
         try {
             const hashedPassword = await this.hashService.hash(body.password)
 
@@ -30,7 +30,7 @@ export class AuthService {
         }
     }
 
-    async login(body: LoginBodyDTO){
+    async login(body: LoginBodyDTO) {
         const user = await this.prismaService.user.findUnique({
             where: {
                 email: body.email
@@ -52,22 +52,22 @@ export class AuthService {
             ])
         }
 
-        const tokens = await this.generateTokens({userId: user.id})
+        const tokens = await this.generateTokens({ userId: user.id })
 
         return tokens
     }
 
-    async generateTokens(payload: {userId: number}){
+    async generateTokens(payload: { userId: number }) {
         const [accessToken, refreshToken] = await Promise.all([
-           this.tokenService.signAccessToken(payload),
-           this.tokenService.signRefreshToken(payload)
+            this.tokenService.signAccessToken(payload),
+            this.tokenService.signRefreshToken(payload)
         ])
 
         const decodedRefreshToken = await this.tokenService.verifyRefreshToken(refreshToken)
 
         if (!decodedRefreshToken) {
             throw new UnauthorizedException('Invalid refresh token')
-        }   
+        }
 
         await this.prismaService.refreshToken.create({
             data: {
@@ -78,18 +78,18 @@ export class AuthService {
         })
 
         return {
-           accessToken,
-           refreshToken
-       }
+            accessToken,
+            refreshToken
+        }
     }
 
-    async refreshToken(refreshToken: string){
+    async refreshToken(refreshToken: string) {
         try {
             const decodedRefreshToken = await this.tokenService.verifyRefreshToken(refreshToken)
 
             if (!decodedRefreshToken) {
                 throw new UnauthorizedException('Invalid refresh token')
-            }   
+            }
 
             await this.prismaService.refreshToken.findUniqueOrThrow({
                 where: {
@@ -102,11 +102,11 @@ export class AuthService {
                     token: refreshToken
                 }
             })
-            const tokens = await this.generateTokens({userId: decodedRefreshToken.userId})
+            const tokens = await this.generateTokens({ userId: decodedRefreshToken.userId })
 
-        return tokens
+            return tokens
         } catch (error) {
-            if(isUniqueConsstraintError(error)){
+            if (isUniqueConsstraintError(error)) {
                 throw new UnprocessableEntityException([
                     {
                         field: 'email',
@@ -115,6 +115,36 @@ export class AuthService {
                 ])
             }
             throw error
+        }
+    }
+
+    async logout(refreshToken: string) {
+        try {
+            const decodedRefreshToken = await this.tokenService.verifyRefreshToken(refreshToken)
+
+            if (!decodedRefreshToken) {
+                throw new UnauthorizedException('Invalid refresh token')
+            }
+
+            await this.prismaService.refreshToken.delete({
+                where: {
+                    token: refreshToken
+                }
+            })
+
+            return {
+                message: 'Logout successfully'
+            }
+        } catch (error) {
+            if (isUniqueConsstraintError(error)) {
+                throw new UnprocessableEntityException([
+                    {
+                        field: 'email',
+                        error: 'Email is already in use'
+                    }
+                ])
+            }
+            throw new UnauthorizedException('Invalid refresh token')
         }
     }
 }
