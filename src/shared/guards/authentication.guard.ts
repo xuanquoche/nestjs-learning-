@@ -31,9 +31,7 @@ export class AuthenticationGuard implements CanActivate {
 
         const guards = authTypeValue.authTypes.map((type) => this.authGuardMap[type])
         let error = new UnauthorizedException('Unauthorized')
-        console.log(guards);
 
-        console.log(authTypeValue.options?.condition);
         if (authTypeValue.options?.condition === ConditionGuard.Or) {
             for (const guard of guards) {
                 try {
